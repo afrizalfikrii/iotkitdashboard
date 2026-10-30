@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ConnectionStatus, FirebaseConfig } from '../types';
 import { Settings, RefreshCw, Cpu, Wifi, User, SlidersHorizontal, LayoutGrid, ToggleLeft, Activity, Terminal } from 'lucide-react';
+import logoImg from '../assets/logo.png';
 
 interface HeaderProps {
   status: ConnectionStatus;
@@ -80,8 +81,12 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Left: Branding & User ID */}
         <div className="flex items-center justify-between w-full md:w-auto gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
-              <Cpu className="w-5 h-5" />
+            <div className="w-12 h-12 rounded-xl bg-white border border-slate-200/90 shadow-xs overflow-hidden flex items-center justify-center p-1 shrink-0 hover:scale-105 transition-transform">
+              <img
+                src={logoImg}
+                alt="IoT-KIT Dashboard Logo"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">
