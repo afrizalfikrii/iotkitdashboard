@@ -334,7 +334,7 @@ export const App: React.FC = () => {
 
           <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex items-center justify-between">
             <div>
-              <p className="text-xs text-slate-500 font-medium">Level Tangki 1</p>
+              <p className="text-xs text-slate-500 font-medium">Level Bar 1</p>
               <p className="text-2xl font-bold text-slate-900 font-mono tracking-tight mt-1">
                 {hlevels.hlevel1.toFixed(0)}%
               </p>
