@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ConnectionStatus, FirebaseConfig } from '../types';
 import { Settings, RefreshCw, Cpu, Wifi, User, SlidersHorizontal, LayoutGrid, ToggleLeft, Activity, Terminal } from 'lucide-react';
-import logoImg from '../assets/logo.png';
 
 interface HeaderProps {
   status: ConnectionStatus;
@@ -81,19 +80,15 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Left: Branding & User ID */}
         <div className="flex items-center justify-between w-full md:w-auto gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-white border border-slate-200/90 shadow-xs overflow-hidden flex items-center justify-center p-1 shrink-0 hover:scale-105 transition-transform">
-              <img
-                src={logoImg}
-                alt="IoT-KIT Dashboard Logo"
-                className="w-full h-full object-contain"
-              />
+            <div className="w-10 h-10 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center text-white shadow-xs shrink-0">
+              <Cpu className="w-5 h-5 text-white" strokeWidth={2} />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-base font-extrabold tracking-tight text-slate-900">
                   IoT-KIT
                 </h1>
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
                   Praktikum
                 </span>
               </div>
