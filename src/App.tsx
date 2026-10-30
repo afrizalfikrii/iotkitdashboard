@@ -8,6 +8,7 @@ import { IndicatorPanel } from './components/IndicatorPanel';
 import { GaugePanel } from './components/GaugePanel';
 import { HLevelPanel } from './components/HLevelPanel';
 import { TerminalLog } from './components/TerminalLog';
+import { BottomNav } from './components/BottomNav';
 import { AlertCircle, RefreshCw, Activity, Power, Gauge, Sliders, Sparkles, Globe, Settings } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -266,7 +267,7 @@ export const App: React.FC = () => {
       />
 
       {/* Main Canvas */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-4 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-4 pb-24 md:pb-8 space-y-6">
         {/* Banner Akun Firebase Belum Diisi */}
         {!isConfigured && (
           <div className="p-4 bg-amber-50/90 border border-amber-200/90 rounded-2xl text-amber-900 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs animate-in fade-in">
@@ -402,13 +403,21 @@ export const App: React.FC = () => {
       </main>
 
       {/* Clean Footer */}
-      <footer className="border-t border-slate-200/60 bg-white/60 backdrop-blur-md py-4 px-6 text-center text-xs text-slate-500 mt-8">
+      <footer className="border-t border-slate-200/60 bg-white/60 backdrop-blur-md py-4 px-6 text-center text-xs text-slate-500 mt-8 mb-16 md:mb-0">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
           <span className="font-bold text-slate-700">IoT-KIT Dashboard Praktikum</span>
           <span>Kompatibel untuk iPhone (Safari), Android (Chrome), iPad, dan Laptop</span>
           <span className="text-slate-400 font-mono text-[11px]">Realtime DB Bus</span>
         </div>
       </footer>
+
+      {/* Floating Mobile Bottom Navigation Bar */}
+      <BottomNav
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        onOpenConfig={() => setIsConfigOpen(true)}
+        isConfigured={isConfigured}
+      />
 
       {/* Configuration Modal */}
       <ConfigModal

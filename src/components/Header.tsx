@@ -107,22 +107,21 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Mobile Right: Status & Configuration Button */}
+          {/* Mobile Right: Status & Quick Reconnect */}
           <div className="flex items-center gap-1.5 md:hidden shrink-0">
             {getStatusBadge()}
             <button
-              onClick={onOpenConfig}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-xs active:scale-95 transition-all text-xs font-bold cursor-pointer"
-              title="Buka Pengaturan Firebase"
+              onClick={onReconnect}
+              className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-600 transition-colors shadow-2xs active:scale-95"
+              title="Muat Ulang Koneksi"
             >
-              <Settings className="w-3.5 h-3.5" />
-              <span>Atur</span>
+              <RefreshCw className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
 
-        {/* Center: Clean Segmented View Tabs */}
-        <div className="flex items-center p-1 bg-slate-100/90 rounded-xl border border-slate-200/60 text-xs font-semibold text-slate-600 w-full sm:w-auto justify-center">
+        {/* Center: Desktop Segmented View Tabs (Hidden on mobile, mobile uses BottomNav) */}
+        <div className="hidden md:flex items-center p-1 bg-slate-100/90 rounded-xl border border-slate-200/60 text-xs font-semibold text-slate-600 justify-center">
           <button
             onClick={() => setActiveTab('all')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
