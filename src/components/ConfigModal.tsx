@@ -107,7 +107,7 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({
             </div>
             <div>
               <h2 className="text-sm font-bold text-slate-900">
-                Pengaturan Akun Firebase Mandiri
+                Pengaturan Akun Firebase
               </h2>
               <p className="text-xs text-slate-500">
                 Masukkan URL Database dan Database Secret proyek Firebase Anda
