@@ -296,51 +296,51 @@ export const App: React.FC = () => {
 
         {/* Quick Highlights Summary Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <div className="bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-slate-200/70 shadow-2xs hover:shadow-xs transition-all flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold border border-emerald-100 shadow-2xs">
-              <Power className="w-5 h-5" />
-            </div>
+          <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex items-center justify-between">
             <div>
-              <p className="text-xs text-slate-500 font-semibold">Sakelar Menyala</p>
-              <p className="text-xl font-extrabold text-slate-900 tracking-tight">
-                {activeSwitchesCount} <span className="text-xs font-semibold text-slate-400">/ 8</span>
+              <p className="text-xs text-slate-500 font-medium">Sakelar Aktif</p>
+              <p className="text-2xl font-bold text-slate-900 tracking-tight mt-1">
+                {activeSwitchesCount} <span className="text-xs font-normal text-slate-400">/ 8</span>
               </p>
+            </div>
+            <div className="w-9 h-9 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center border border-slate-200/60">
+              <Power className="w-4 h-4" />
             </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-slate-200/70 shadow-2xs hover:shadow-xs transition-all flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold border border-blue-100 shadow-2xs">
-              <Activity className="w-5 h-5" />
-            </div>
+          <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex items-center justify-between">
             <div>
-              <p className="text-xs text-slate-500 font-semibold">Sensor Terdeteksi</p>
-              <p className="text-xl font-extrabold text-slate-900 tracking-tight">
-                {activeIndicatorsCount} <span className="text-xs font-semibold text-slate-400">/ 8</span>
+              <p className="text-xs text-slate-500 font-medium">Sensor Terdeteksi</p>
+              <p className="text-2xl font-bold text-slate-900 tracking-tight mt-1">
+                {activeIndicatorsCount} <span className="text-xs font-normal text-slate-400">/ 8</span>
               </p>
+            </div>
+            <div className="w-9 h-9 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center border border-slate-200/60">
+              <Activity className="w-4 h-4" />
             </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-slate-200/70 shadow-2xs hover:shadow-xs transition-all flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold border border-indigo-100 shadow-2xs">
-              <Gauge className="w-5 h-5" />
-            </div>
+          <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex items-center justify-between">
             <div>
-              <p className="text-xs text-slate-500 font-semibold">Sensor Analog 1</p>
-              <p className="text-xl font-extrabold text-slate-900 font-mono tracking-tight">
+              <p className="text-xs text-slate-500 font-medium">Sensor Analog 1</p>
+              <p className="text-2xl font-bold text-slate-900 font-mono tracking-tight mt-1">
                 {gauges.gauge1.toFixed(1)}
               </p>
             </div>
+            <div className="w-9 h-9 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center border border-slate-200/60">
+              <Gauge className="w-4 h-4" />
+            </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-slate-200/70 shadow-2xs hover:shadow-xs transition-all flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-violet-50 text-violet-600 flex items-center justify-center font-bold border border-violet-100 shadow-2xs">
-              <Sliders className="w-5 h-5" />
-            </div>
+          <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex items-center justify-between">
             <div>
-              <p className="text-xs text-slate-500 font-semibold">Level Tangki 1</p>
-              <p className="text-xl font-extrabold text-slate-900 font-mono tracking-tight">
+              <p className="text-xs text-slate-500 font-medium">Level Tangki 1</p>
+              <p className="text-2xl font-bold text-slate-900 font-mono tracking-tight mt-1">
                 {hlevels.hlevel1.toFixed(0)}%
               </p>
+            </div>
+            <div className="w-9 h-9 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center border border-slate-200/60">
+              <Sliders className="w-4 h-4" />
             </div>
           </div>
         </div>

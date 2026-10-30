@@ -53,9 +53,10 @@ export const IndicatorPanel: React.FC<IndicatorPanelProps> = ({ indicators }) =>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
-            {activeCount} Sensor Aktif (HIGH)
-          </span>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200/80 text-slate-700 text-xs font-medium">
+            <span className={`w-1.5 h-1.5 rounded-full ${activeCount > 0 ? 'bg-blue-600' : 'bg-slate-400'}`} />
+            <span>{activeCount} / 8 Aktif</span>
+          </div>
           <button
             onClick={handleResetNames}
             title="Reset Nama Bawaan"

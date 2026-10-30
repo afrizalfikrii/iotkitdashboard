@@ -85,20 +85,21 @@ export const SwitchPanel: React.FC<SwitchPanelProps> = ({
 
         {/* Counter and Batch Actions */}
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 border border-slate-200">
-            {activeCount} / 8 Menyala
-          </span>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200/80 text-slate-700 text-xs font-medium">
+            <span className={`w-1.5 h-1.5 rounded-full ${activeCount > 0 ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+            <span>{activeCount} / 8 Aktif</span>
+          </div>
           <button
             onClick={() => handleBatch(true)}
             disabled={batchLoading || activeCount === 8}
-            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-bold text-xs transition-colors shadow-2xs"
+            className="px-3 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-medium text-xs transition-colors shadow-2xs cursor-pointer"
           >
             Nyalakan Semua
           </button>
           <button
             onClick={() => handleBatch(false)}
             disabled={batchLoading || activeCount === 0}
-            className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 font-bold text-xs transition-colors"
+            className="px-3 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 font-medium text-xs transition-colors cursor-pointer"
           >
             Matikan Semua
           </button>

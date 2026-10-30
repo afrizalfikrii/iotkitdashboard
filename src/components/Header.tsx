@@ -93,15 +93,15 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               </div>
               <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                <Wifi className="w-3.5 h-3.5 text-emerald-500" />
-                <span>ESP User:</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span className="text-slate-400">Node:</span>
                 <button
                   onClick={onOpenConfig}
-                  className="inline-flex items-center gap-1 font-mono font-bold text-xs text-indigo-600 bg-indigo-50/80 hover:bg-indigo-100 border border-indigo-200 px-2 py-0.5 rounded-md transition-all shadow-2xs"
-                  title="Klik untuk mengubah User ID sesuai kodingan ESP"
+                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-slate-800 text-xs font-mono font-medium transition-colors cursor-pointer"
+                  title="Klik untuk mengubah Node Path / User ID"
                 >
-                  <User className="w-3 h-3 text-indigo-500" />
-                  <span>{config.devicePrefix || 'Semua (Root)'}</span>
+                  <User className="w-3 h-3 text-slate-500" />
+                  <span>/{config.devicePrefix || 'root'}</span>
                 </button>
               </div>
             </div>
