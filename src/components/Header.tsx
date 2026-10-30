@@ -108,10 +108,10 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Row 2: Node Breadcrumb Bar */}
+          {/* Row 2: User Breadcrumb Bar */}
           <div className="flex items-center justify-between px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200/70 text-xs">
             <div className="flex items-center gap-1.5 truncate">
-              <span className="text-slate-400 text-[11px]">Node:</span>
+              <span className="text-slate-400 text-[11px]">User:</span>
               <span className="font-mono font-medium text-slate-800 text-[11px] bg-white px-2 py-0.5 rounded border border-slate-200/80 shadow-2xs">
                 /{config.devicePrefix || 'root'}
               </span>
@@ -127,7 +127,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* DESKTOP VIEW (Spacious 3-column layout) */}
         <div className="hidden md:flex items-center justify-between gap-4">
-          {/* Left: Branding & Node Info */}
+          {/* Left: Branding & User Info */}
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center text-white shadow-xs shrink-0">
               <Cpu className="w-5 h-5 text-white" strokeWidth={2} />
@@ -143,11 +143,11 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
               <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                <span className="text-slate-400">Node:</span>
+                <span className="text-slate-400">User:</span>
                 <button
                   onClick={onOpenConfig}
                   className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-slate-800 text-xs font-mono font-medium transition-colors cursor-pointer"
-                  title="Klik untuk mengubah Node Path / User ID"
+                  title="Klik untuk mengubah User ID"
                 >
                   <User className="w-3 h-3 text-slate-500" />
                   <span>/{config.devicePrefix || 'root'}</span>
