@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { X, Download, Copy, Check, Code2, FileCode2, Sparkles, ChevronDown, ChevronUp, Eye } from 'lucide-react';
+import { X, Download, Copy, Check, Code2, FileCode2, Sparkles, ChevronDown, ChevronUp, Eye, Tags } from 'lucide-react';
 import {
   PRAKTIKUM_MODULES,
   PraktikumModule,
@@ -14,6 +14,7 @@ interface SourceCodeModalProps {
   currentConfig: FirebaseConfig;
   selectedModuleId: string;
   onSelectModuleId: (id: string) => void;
+  onApplyPreset: (mod: PraktikumModule) => void;
 }
 
 export const SourceCodeModal: React.FC<SourceCodeModalProps> = ({
@@ -22,6 +23,7 @@ export const SourceCodeModal: React.FC<SourceCodeModalProps> = ({
   currentConfig,
   selectedModuleId,
   onSelectModuleId,
+  onApplyPreset,
 }) => {
   const [injectConfig, setInjectConfig] = useState<boolean>(true);
   const [showPreview, setShowPreview] = useState<boolean>(false);
@@ -142,6 +144,18 @@ export const SourceCodeModal: React.FC<SourceCodeModalProps> = ({
             <p className="text-xs text-slate-600">
               {selectedModule.description}
             </p>
+            {selectedModule.labelPreset && (
+              <div className="pt-1.5">
+                <button
+                  type="button"
+                  onClick={() => onApplyPreset(selectedModule)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-xs font-semibold text-blue-700 transition-colors cursor-pointer"
+                >
+                  <Tags className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Sesuaikan Label Dashboard</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Auto-inject Firebase Config Option */}

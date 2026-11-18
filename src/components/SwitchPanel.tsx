@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Loader2, Pencil, Check, RotateCcw } from 'lucide-react';
 import { loadSavedLabels, saveLabels, DEFAULT_LABELS } from '../lib/labels';
 
 interface SwitchPanelProps {
   switches: Record<number, boolean>;
   disabled?: boolean;
+  labelVersion?: number;
   onToggleSwitch: (channel: number, newState: boolean) => Promise<void>;
   onBatchToggle: (newState: boolean) => Promise<void>;
 }
@@ -12,6 +13,7 @@ interface SwitchPanelProps {
 export const SwitchPanel: React.FC<SwitchPanelProps> = ({
   switches,
   disabled = false,
+  labelVersion = 0,
   onToggleSwitch,
   onBatchToggle
 }) => {
@@ -21,6 +23,10 @@ export const SwitchPanel: React.FC<SwitchPanelProps> = ({
   const [loadingChannels, setLoadingChannels] = useState<Record<number, boolean>>({});
   const [batchLoading, setBatchLoading] = useState<boolean>(false);
   const [confirmReset, setConfirmReset] = useState<boolean>(false);
+
+  useEffect(() => {
+    setLabels(loadSavedLabels().switches);
+  }, [labelVersion]);
 
   const startEdit = (ch: number, currentName: string, e: React.MouseEvent) => {
     e.stopPropagation();

@@ -1,4 +1,12 @@
 import { FirebaseConfig } from '../types';
+import { CustomLabels, DEFAULT_LABELS, saveLabels } from '../lib/labels';
+
+export interface LabelPreset {
+  switches?: Record<number, string>;
+  indicators?: Record<number, string>;
+  hlevels?: Record<number, string>;
+  gauges?: Record<number, { label: string; unit: string; max: number }>;
+}
 
 export interface PraktikumModule {
   id: string;
@@ -7,6 +15,7 @@ export interface PraktikumModule {
   description: string;
   fileName: string;
   usesFirebase: boolean;
+  labelPreset?: LabelPreset;
   code: string;
 }
 
@@ -28,6 +37,7 @@ interface ModuleMeta {
   description: string;
   fileName: string;
   usesFirebase: boolean;
+  labelPreset?: LabelPreset;
 }
 
 const MODULE_LIST: ModuleMeta[] = [
@@ -46,6 +56,9 @@ const MODULE_LIST: ModuleMeta[] = [
     description: 'Mengontrol LED, Buzzer, dan Relay secara realtime melalui switch1 - switch8 di Firebase.',
     fileName: 'Modul04_LED_Buzzer_Relay.ino',
     usesFirebase: true,
+    labelPreset: {
+      switches: { 1: 'LED', 2: 'Buzzer', 3: 'Relay' },
+    },
   },
   {
     id: 'modul-05a',
@@ -54,6 +67,9 @@ const MODULE_LIST: ModuleMeta[] = [
     description: 'Menampilkan status dan teks dari dashboard ke layar karakter LCD 16x2 I2C.',
     fileName: 'Modul05A_LCD16x2.ino',
     usesFirebase: true,
+    labelPreset: {
+      switches: { 1: 'Kontrol LCD 16x2' },
+    },
   },
   {
     id: 'modul-05b',
@@ -62,6 +78,9 @@ const MODULE_LIST: ModuleMeta[] = [
     description: 'Menampilkan informasi dan status IoT pada layar grafis OLED 128x64 I2C.',
     fileName: 'Modul05B_OLED128x64.ino',
     usesFirebase: true,
+    labelPreset: {
+      switches: { 1: 'Kontrol OLED' },
+    },
   },
   {
     id: 'modul-06a',
@@ -70,6 +89,9 @@ const MODULE_LIST: ModuleMeta[] = [
     description: 'Membaca intensitas cahaya analog dengan LDR/Photodiode dan mengirimkannya ke dashboard.',
     fileName: 'Modul06A_LDR_Photodiode.ino',
     usesFirebase: true,
+    labelPreset: {
+      gauges: { 1: { label: 'Cahaya (LDR)', unit: 'ADC', max: 1024 } },
+    },
   },
   {
     id: 'modul-06b',
@@ -78,6 +100,9 @@ const MODULE_LIST: ModuleMeta[] = [
     description: 'Mengukur intensitas cahaya dalam satuan Lux menggunakan sensor I2C BH1750.',
     fileName: 'Modul06B_BH1750.ino',
     usesFirebase: true,
+    labelPreset: {
+      gauges: { 1: { label: 'Cahaya BH1750', unit: 'lx', max: 1000 } },
+    },
   },
   {
     id: 'modul-06c',
@@ -86,6 +111,9 @@ const MODULE_LIST: ModuleMeta[] = [
     description: 'Membaca nilai analog potensiometer, menampilkan ke OLED, dan mengirim data ke Firebase.',
     fileName: 'Modul06C_Potensiometer.ino',
     usesFirebase: true,
+    labelPreset: {
+      gauges: { 1: { label: 'Potensiometer', unit: 'ADC', max: 1024 } },
+    },
   },
   {
     id: 'modul-07',
@@ -94,6 +122,12 @@ const MODULE_LIST: ModuleMeta[] = [
     description: 'Membaca suhu (°C) dan kelembaban (%) dari sensor DHT11 serta menampilkan ke LCD & Gauge.',
     fileName: 'Modul07_DHT11.ino',
     usesFirebase: true,
+    labelPreset: {
+      gauges: {
+        1: { label: 'Suhu (DHT11)', unit: '°C', max: 100 },
+        2: { label: 'Kelembaban', unit: '%', max: 100 },
+      },
+    },
   },
   {
     id: 'modul-08',
@@ -102,6 +136,13 @@ const MODULE_LIST: ModuleMeta[] = [
     description: 'Membaca tekanan udara, suhu, dan estimasi ketinggian menggunakan sensor BMP180.',
     fileName: 'Modul08_BMP180.ino',
     usesFirebase: true,
+    labelPreset: {
+      gauges: {
+        1: { label: 'Suhu (BMP180)', unit: '°C', max: 100 },
+        2: { label: 'Tekanan Udara', unit: 'hPa', max: 1100 },
+      },
+      hlevels: { 1: 'Ketinggian (m)' },
+    },
   },
   {
     id: 'modul-09',
@@ -110,6 +151,9 @@ const MODULE_LIST: ModuleMeta[] = [
     description: 'Mendeteksi kelembaban tanah dan sensor hujan untuk aplikasi pertanian cerdas.',
     fileName: 'Modul09_SoilMoisture_Rain.ino',
     usesFirebase: true,
+    labelPreset: {
+      gauges: { 1: { label: 'Kelembaban Tanah / Hujan', unit: 'ADC', max: 1024 } },
+    },
   },
   {
     id: 'modul-10a',
@@ -118,6 +162,9 @@ const MODULE_LIST: ModuleMeta[] = [
     description: 'Mendeteksi pergerakan manusia menggunakan sensor PIR dan mengirim status ke indikator.',
     fileName: 'Modul10A_PIR.ino',
     usesFirebase: true,
+    labelPreset: {
+      indicators: { 1: 'Sensor Gerak (PIR)' },
+    },
   },
   {
     id: 'modul-10b',
@@ -126,6 +173,9 @@ const MODULE_LIST: ModuleMeta[] = [
     description: 'Mengukur jarak/ketinggian objek dalam cm menggunakan sensor ultrasonik HC-SR04.',
     fileName: 'Modul10B_Ultrasonik_HCSR04.ino',
     usesFirebase: true,
+    labelPreset: {
+      hlevels: { 1: 'Jarak Ultrasonik (cm)' },
+    },
   },
   {
     id: 'modul-11',
@@ -134,6 +184,9 @@ const MODULE_LIST: ModuleMeta[] = [
     description: 'Menggerakkan sudut motor servo berdasarkan kontrol nilai dari dashboard Firebase.',
     fileName: 'Modul11_Servo.ino',
     usesFirebase: true,
+    labelPreset: {
+      switches: { 1: 'Motor Servo (0°/180°)' },
+    },
   },
   {
     id: 'modul-12',
@@ -142,6 +195,9 @@ const MODULE_LIST: ModuleMeta[] = [
     description: 'Membaca UID kartu/tag RFID RC522 untuk sistem akses kontrol dan verifikasi Firebase.',
     fileName: 'Modul12_RFID_RC522.ino',
     usesFirebase: true,
+    labelPreset: {
+      indicators: { 1: 'Kartu RFID RC522' },
+    },
   },
   {
     id: 'modul-13a',
@@ -220,4 +276,17 @@ export function downloadModuleFile(fileName: string, content: string): void {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+}
+
+/** Applies a module's label preset over default labels and persists to localStorage. */
+export function applyModuleLabelPreset(mod: PraktikumModule): CustomLabels {
+  const preset = mod.labelPreset || {};
+  const next: CustomLabels = {
+    switches: { ...DEFAULT_LABELS.switches, ...(preset.switches || {}) },
+    indicators: { ...DEFAULT_LABELS.indicators, ...(preset.indicators || {}) },
+    hlevels: { ...DEFAULT_LABELS.hlevels, ...(preset.hlevels || {}) },
+    gauges: { ...DEFAULT_LABELS.gauges, ...(preset.gauges || {}) },
+  };
+  saveLabels(next);
+  return next;
 }

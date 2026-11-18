@@ -5,7 +5,7 @@ import { Header } from './components/Header';
 import { ConfigModal } from './components/ConfigModal';
 import { SourceCodeModal } from './components/SourceCodeModal';
 import { ModuleDownloadBar } from './components/ModuleDownloadBar';
-import { PRAKTIKUM_MODULES } from './data/praktikumModules';
+import { PRAKTIKUM_MODULES, PraktikumModule, applyModuleLabelPreset } from './data/praktikumModules';
 import { SwitchPanel } from './components/SwitchPanel';
 import { IndicatorPanel } from './components/IndicatorPanel';
 import { GaugePanel } from './components/GaugePanel';
@@ -19,6 +19,7 @@ export const App: React.FC = () => {
   const [isConfigOpen, setIsConfigOpen] = useState<boolean>(false);
   const [isSourceCodeOpen, setIsSourceCodeOpen] = useState<boolean>(false);
   const [selectedModuleId, setSelectedModuleId] = useState<string>(PRAKTIKUM_MODULES[0]?.id || 'modul-02');
+  const [labelVersion, setLabelVersion] = useState<number>(0);
   const [status, setStatus] = useState<ConnectionStatus>('disconnected');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [latencyMs, setLatencyMs] = useState<number | null>(null);
@@ -50,6 +51,12 @@ export const App: React.FC = () => {
     if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
     toastTimerRef.current = window.setTimeout(() => setToast(null), 4000);
   }, []);
+
+  const handleApplyPreset = useCallback((mod: PraktikumModule) => {
+    applyModuleLabelPreset(mod);
+    setLabelVersion((v) => v + 1);
+    showToast(`Label dashboard disesuaikan untuk ${mod.modul} (${mod.title}).`, 'ok');
+  }, [showToast]);
 
   // Helper to add activity log entry
   const addLog = useCallback((
@@ -339,6 +346,7 @@ export const App: React.FC = () => {
           selectedModuleId={selectedModuleId}
           onSelectModuleId={setSelectedModuleId}
           onOpenModal={() => setIsSourceCodeOpen(true)}
+          onApplyPreset={handleApplyPreset}
           currentConfig={config}
         />
 
@@ -367,6 +375,7 @@ export const App: React.FC = () => {
           <SwitchPanel
             switches={switches}
             disabled={isSwitchLocked}
+            labelVersion={labelVersion}
             onToggleSwitch={handleToggleSwitch}
             onBatchToggle={handleBatchToggle}
           />
@@ -377,15 +386,18 @@ export const App: React.FC = () => {
           <div className="space-y-6">
             <IndicatorPanel
               indicators={indicators}
+              labelVersion={labelVersion}
             />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <GaugePanel
                 gauge1={gauges.gauge1}
                 gauge2={gauges.gauge2}
+                labelVersion={labelVersion}
               />
               <HLevelPanel
                 hlevel1={hlevels.hlevel1}
                 hlevel2={hlevels.hlevel2}
+                labelVersion={labelVersion}
               />
             </div>
           </div>
@@ -437,6 +449,7 @@ export const App: React.FC = () => {
         currentConfig={config}
         selectedModuleId={selectedModuleId}
         onSelectModuleId={setSelectedModuleId}
+        onApplyPreset={handleApplyPreset}
       />
 
       {/* Non-blocking Toast Notification */}

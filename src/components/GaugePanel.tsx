@@ -1,16 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Settings2, RotateCcw } from 'lucide-react';
 import { loadSavedLabels, saveLabels, DEFAULT_LABELS } from '../lib/labels';
 
 interface GaugePanelProps {
   gauge1: number;
   gauge2: number;
+  labelVersion?: number;
 }
 
-export const GaugePanel: React.FC<GaugePanelProps> = ({ gauge1, gauge2 }) => {
+export const GaugePanel: React.FC<GaugePanelProps> = ({ gauge1, gauge2, labelVersion = 0 }) => {
   const [gaugesConfig, setGaugesConfig] = useState(() => loadSavedLabels().gauges);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [confirmReset, setConfirmReset] = useState<boolean>(false);
+
+  useEffect(() => {
+    setGaugesConfig(loadSavedLabels().gauges);
+  }, [labelVersion]);
 
   const handleUpdate = (ch: number, field: 'label' | 'unit' | 'max', value: string | number) => {
     const next = {

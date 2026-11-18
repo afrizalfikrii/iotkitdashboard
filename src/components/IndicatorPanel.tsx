@@ -1,16 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Pencil, Check, RotateCcw } from 'lucide-react';
 import { loadSavedLabels, saveLabels, DEFAULT_LABELS } from '../lib/labels';
 
 interface IndicatorPanelProps {
   indicators: Record<number, boolean>;
+  labelVersion?: number;
 }
 
-export const IndicatorPanel: React.FC<IndicatorPanelProps> = ({ indicators }) => {
+export const IndicatorPanel: React.FC<IndicatorPanelProps> = ({ indicators, labelVersion = 0 }) => {
   const [labels, setLabels] = useState<Record<number, string>>(() => loadSavedLabels().indicators);
   const [editingCh, setEditingCh] = useState<number | null>(null);
   const [tempLabel, setTempLabel] = useState<string>('');
   const [confirmReset, setConfirmReset] = useState<boolean>(false);
+
+  useEffect(() => {
+    setLabels(loadSavedLabels().indicators);
+  }, [labelVersion]);
 
   const startEdit = (ch: number, currentName: string) => {
     setEditingCh(ch);

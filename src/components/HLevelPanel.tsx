@@ -1,17 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Pencil, Check, RotateCcw } from 'lucide-react';
 import { loadSavedLabels, saveLabels, DEFAULT_LABELS } from '../lib/labels';
 
 interface HLevelPanelProps {
   hlevel1: number;
   hlevel2: number;
+  labelVersion?: number;
 }
 
-export const HLevelPanel: React.FC<HLevelPanelProps> = ({ hlevel1, hlevel2 }) => {
+export const HLevelPanel: React.FC<HLevelPanelProps> = ({ hlevel1, hlevel2, labelVersion = 0 }) => {
   const [labels, setLabels] = useState<Record<number, string>>(() => loadSavedLabels().hlevels);
   const [editingCh, setEditingCh] = useState<number | null>(null);
   const [tempLabel, setTempLabel] = useState<string>('');
   const [confirmReset, setConfirmReset] = useState<boolean>(false);
+
+  useEffect(() => {
+    setLabels(loadSavedLabels().hlevels);
+  }, [labelVersion]);
 
   const startEdit = (ch: number, currentName: string) => {
     setEditingCh(ch);
