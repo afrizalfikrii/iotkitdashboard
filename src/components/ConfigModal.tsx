@@ -18,9 +18,11 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({
 }) => {
   const [form, setForm] = useState<FirebaseConfig>(currentConfig);
   const [showGuide, setShowGuide] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
     setForm(currentConfig);
+    setValidationError(null);
   }, [currentConfig, isOpen]);
 
   if (!isOpen) return null;
@@ -76,14 +78,16 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({
     }
 
     if (!cleanUrl) {
-      alert("Harap masukkan Firebase Database URL Anda.");
+      setValidationError("Harap masukkan Firebase Database URL Anda.");
       return;
     }
 
     if (!cleanKey) {
-      alert("Harap masukkan Database Secret / Key Firebase Anda.");
+      setValidationError("Harap masukkan Database Secret / Key Firebase Anda.");
       return;
     }
+
+    setValidationError(null);
 
     const formatted: FirebaseConfig = {
       ...form,
@@ -231,6 +235,13 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({
             </div>
           </div>
 
+
+          {/* Inline Validation Error */}
+          {validationError && (
+            <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
+              {validationError}
+            </div>
+          )}
 
           {/* Footer Buttons */}
           <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-2.5">

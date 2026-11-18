@@ -4,12 +4,14 @@ import { loadSavedLabels, saveLabels, DEFAULT_LABELS } from '../lib/labels';
 
 interface SwitchPanelProps {
   switches: Record<number, boolean>;
+  disabled?: boolean;
   onToggleSwitch: (channel: number, newState: boolean) => Promise<void>;
   onBatchToggle: (newState: boolean) => Promise<void>;
 }
 
 export const SwitchPanel: React.FC<SwitchPanelProps> = ({
   switches,
+  disabled = false,
   onToggleSwitch,
   onBatchToggle
 }) => {
@@ -18,6 +20,7 @@ export const SwitchPanel: React.FC<SwitchPanelProps> = ({
   const [tempLabel, setTempLabel] = useState<string>('');
   const [loadingChannels, setLoadingChannels] = useState<Record<number, boolean>>({});
   const [batchLoading, setBatchLoading] = useState<boolean>(false);
+  const [confirmReset, setConfirmReset] = useState<boolean>(false);
 
   const startEdit = (ch: number, currentName: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -37,18 +40,16 @@ export const SwitchPanel: React.FC<SwitchPanelProps> = ({
   };
 
   const handleResetNames = () => {
-    if (confirm('Kembalikan semua nama sakelar ke bawaan (Sakelar 1 - 8)?')) {
-      setLabels(DEFAULT_LABELS.switches);
-      const full = loadSavedLabels();
-      full.switches = DEFAULT_LABELS.switches;
-      saveLabels(full);
-      setEditingCh(null);
-    }
+    setLabels(DEFAULT_LABELS.switches);
+    const full = loadSavedLabels();
+    full.switches = DEFAULT_LABELS.switches;
+    saveLabels(full);
+    setEditingCh(null);
+    setConfirmReset(false);
   };
 
   const handleToggle = async (channel: number) => {
-    // If currently editing this card, don't trigger toggle
-    if (editingCh === channel) return;
+    if (disabled || editingCh === channel) return;
     const currentState = !!switches[channel];
     setLoadingChannels(prev => ({ ...prev, [channel]: true }));
     try {
@@ -59,6 +60,7 @@ export const SwitchPanel: React.FC<SwitchPanelProps> = ({
   };
 
   const handleBatch = async (targetState: boolean) => {
+    if (disabled) return;
     setBatchLoading(true);
     try {
       await onBatchToggle(targetState);
@@ -76,44 +78,66 @@ export const SwitchPanel: React.FC<SwitchPanelProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-100">
         <div>
           <h2 className="text-base font-bold text-slate-900 tracking-tight">
-            Kontrol Sakelar & Relay
+            Sakelar & Relay
           </h2>
           <p className="text-xs text-slate-500">
-            Klik sakelar untuk mengubah state. Klik ikon pensil untuk mengganti nama sakelar.
+            Klik kartu untuk ON/OFF. Klik pensil untuk ubah nama.
           </p>
         </div>
 
         {/* Counter and Batch Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {disabled && (
+            <span className="text-[11px] font-medium px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 border border-amber-200/80">
+              Hubungkan Firebase untuk mengontrol
+            </span>
+          )}
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200/80 text-slate-700 text-xs font-medium">
             <span className={`w-1.5 h-1.5 rounded-full ${activeCount > 0 ? 'bg-emerald-500' : 'bg-slate-400'}`} />
             <span>{activeCount} / 8 Aktif</span>
           </div>
           <button
             onClick={() => handleBatch(true)}
-            disabled={batchLoading || activeCount === 8}
-            className="px-3 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-medium text-xs transition-colors shadow-2xs cursor-pointer"
+            disabled={disabled || batchLoading || activeCount === 8}
+            className="px-3 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium text-xs transition-colors shadow-2xs cursor-pointer"
           >
             Nyalakan Semua
           </button>
           <button
             onClick={() => handleBatch(false)}
-            disabled={batchLoading || activeCount === 0}
-            className="px-3 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 font-medium text-xs transition-colors cursor-pointer"
+            disabled={disabled || batchLoading || activeCount === 0}
+            className="px-3 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed text-slate-700 font-medium text-xs transition-colors cursor-pointer"
           >
             Matikan Semua
           </button>
-          <button
-            onClick={handleResetNames}
-            title="Reset Nama Bawaan"
-            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-          </button>
+          {confirmReset ? (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handleResetNames}
+                className="px-2 py-1 rounded-md bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-semibold cursor-pointer"
+              >
+                Reset
+              </button>
+              <button
+                onClick={() => setConfirmReset(false)}
+                className="px-2 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-medium cursor-pointer"
+              >
+                Batal
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmReset(true)}
+              title="Reset Nama Bawaan"
+              className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Grid of Clean Modern Switch Tiles (NO CONFUSING ICONS) */}
+      {/* Grid of Clean Modern Switch Tiles */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-1">
         {channelList.map((ch) => {
           const isActive = !!switches[ch];
@@ -126,11 +150,14 @@ export const SwitchPanel: React.FC<SwitchPanelProps> = ({
               key={ch}
               onClick={() => handleToggle(ch)}
               role="button"
-              tabIndex={0}
-              className={`text-left p-3.5 rounded-xl border transition-all duration-150 select-none flex flex-col justify-between min-h-[110px] cursor-pointer ${
-                isActive
-                  ? 'bg-emerald-50/70 border-emerald-300 shadow-2xs ring-1 ring-emerald-400/20'
-                  : 'bg-white hover:bg-slate-50/70 border-slate-200 shadow-2xs hover:border-slate-300'
+              tabIndex={disabled ? -1 : 0}
+              aria-disabled={disabled}
+              className={`text-left p-3.5 rounded-xl border transition-all duration-150 select-none flex flex-col justify-between min-h-[110px] ${
+                disabled
+                  ? 'bg-slate-50/70 border-slate-200/80 opacity-65 cursor-not-allowed'
+                  : isActive
+                  ? 'bg-emerald-50/70 border-emerald-300 shadow-2xs ring-1 ring-emerald-400/20 cursor-pointer'
+                  : 'bg-white hover:bg-slate-50/70 border-slate-200 shadow-2xs hover:border-slate-300 cursor-pointer'
               }`}
             >
               {/* Top Row: Channel Badge & Toggle Pill */}

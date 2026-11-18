@@ -12,7 +12,7 @@ import { GaugePanel } from './components/GaugePanel';
 import { HLevelPanel } from './components/HLevelPanel';
 import { TerminalLog } from './components/TerminalLog';
 import { BottomNav } from './components/BottomNav';
-import { AlertCircle, RefreshCw, Activity, Power, Gauge, Sliders, Sparkles, Globe, Settings } from 'lucide-react';
+import { AlertCircle, RefreshCw, Globe, Settings, CheckCircle2, X } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [config, setConfig] = useState<FirebaseConfig>(loadSavedConfig());
@@ -41,7 +41,15 @@ export const App: React.FC = () => {
   });
 
   const [logs, setLogs] = useState<ActivityLog[]>([]);
+  const [toast, setToast] = useState<{ message: string; type: 'ok' | 'err' } | null>(null);
+  const toastTimerRef = useRef<number | null>(null);
   const isInitialMount = useRef(true);
+
+  const showToast = useCallback((message: string, type: 'ok' | 'err' = 'ok') => {
+    setToast({ message, type });
+    if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = window.setTimeout(() => setToast(null), 4000);
+  }, []);
 
   // Helper to add activity log entry
   const addLog = useCallback((
@@ -200,6 +208,11 @@ export const App: React.FC = () => {
 
   // Handle Switch Toggle
   const handleToggleSwitch = async (channel: number, newState: boolean) => {
+    if (!isConfigured || status !== 'connected') {
+      showToast('Hubungkan Firebase terlebih dahulu sebelum mengontrol sakelar.', 'err');
+      return;
+    }
+
     const tStart = performance.now();
     setSwitches(prev => ({ ...prev, [channel]: newState }));
 
@@ -211,12 +224,17 @@ export const App: React.FC = () => {
       setSwitches(prev => ({ ...prev, [channel]: !newState }));
       const msg = err instanceof Error ? err.message : String(err);
       addLog(`Sakelar ${channel}`, 'TX', `Gagal mengubah switch${channel}: ${msg}`, 'err');
-      alert(`Gagal mengubah switch${channel}: ${msg}`);
+      showToast(`Gagal mengubah switch${channel}: ${msg}`, 'err');
     }
   };
 
   // Handle Batch All ON / OFF
   const handleBatchToggle = async (newState: boolean) => {
+    if (!isConfigured || status !== 'connected') {
+      showToast('Hubungkan Firebase terlebih dahulu sebelum mengontrol sakelar.', 'err');
+      return;
+    }
+
     const promises = [1, 2, 3, 4, 5, 6, 7, 8].map(ch =>
       firebaseService.setNodeValue(`switch${ch}`, newState)
     );
@@ -230,6 +248,7 @@ export const App: React.FC = () => {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       addLog('AKTUATOR', 'TX', `Gagal eksekusi serentak: ${msg}`, 'err');
+      showToast(`Gagal eksekusi serentak: ${msg}`, 'err');
     }
   };
 
@@ -240,23 +259,22 @@ export const App: React.FC = () => {
 
   const handleForceInitNodes = async () => {
     if (!firebaseService.getDatabase()) {
-      alert("Firebase belum terhubung. Harap isi URL & Key terlebih dahulu.");
+      showToast('Firebase belum terhubung. Harap isi URL & Key terlebih dahulu.', 'err');
       return;
     }
     try {
       const res = await firebaseService.initializeSchema(true);
       addLog('DATABASE', 'TX', `Struktur ${res.createdCount} node Firebase berhasil dibuat ulang di console.`, 'ok');
-      alert(`Berhasil! Seluruh node (switch 1-8, indicator 1-8, gauge 1-2, hlevel 1-2) telah dibuat di Firebase Console Anda.`);
+      showToast('Seluruh node Firebase (switch, indicator, gauge, hlevel) berhasil dibuat.', 'ok');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       addLog('DATABASE', 'TX', `Gagal inisialisasi node: ${msg}`, 'err');
-      alert(`Gagal inisialisasi node: ${msg}`);
+      showToast(`Gagal inisialisasi node: ${msg}`, 'err');
     }
   };
 
-  const activeSwitchesCount = Object.values(switches).filter(Boolean).length;
-  const activeIndicatorsCount = Object.values(indicators).filter(Boolean).length;
   const isConfigured = Boolean(config.databaseURL.trim() && config.apiKey.trim());
+  const isSwitchLocked = !isConfigured || status !== 'connected';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100/50 to-indigo-50/30 text-slate-800 flex flex-col font-sans">
@@ -272,7 +290,7 @@ export const App: React.FC = () => {
       />
 
       {/* Main Canvas */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-4 pb-24 md:pb-8 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-4 pb-24 lg:pb-8 space-y-6">
         {/* Banner Akun Firebase Belum Diisi + Panduan 3 Langkah */}
         {!isConfigured && (
           <div className="p-4 bg-amber-50/90 border border-amber-200/90 rounded-2xl text-amber-900 text-xs space-y-3 shadow-2xs animate-in fade-in">
@@ -316,57 +334,6 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        {/* Quick Highlights Summary Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex items-center justify-between">
-            <div>
-              <p className="text-xs text-slate-500 font-medium">Sakelar Aktif</p>
-              <p className="text-2xl font-bold text-slate-900 tracking-tight mt-1">
-                {activeSwitchesCount} <span className="text-xs font-normal text-slate-400">/ 8</span>
-              </p>
-            </div>
-            <div className="w-9 h-9 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center border border-slate-200/60">
-              <Power className="w-4 h-4" />
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex items-center justify-between">
-            <div>
-              <p className="text-xs text-slate-500 font-medium">Sensor Terdeteksi</p>
-              <p className="text-2xl font-bold text-slate-900 tracking-tight mt-1">
-                {activeIndicatorsCount} <span className="text-xs font-normal text-slate-400">/ 8</span>
-              </p>
-            </div>
-            <div className="w-9 h-9 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center border border-slate-200/60">
-              <Activity className="w-4 h-4" />
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex items-center justify-between">
-            <div>
-              <p className="text-xs text-slate-500 font-medium">Sensor Analog 1</p>
-              <p className="text-2xl font-bold text-slate-900 font-mono tracking-tight mt-1">
-                {gauges.gauge1.toFixed(1)}
-              </p>
-            </div>
-            <div className="w-9 h-9 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center border border-slate-200/60">
-              <Gauge className="w-4 h-4" />
-            </div>
-          </div>
-
-          <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex items-center justify-between">
-            <div>
-              <p className="text-xs text-slate-500 font-medium">Level Bar 1</p>
-              <p className="text-2xl font-bold text-slate-900 font-mono tracking-tight mt-1">
-                {hlevels.hlevel1.toFixed(0)}%
-              </p>
-            </div>
-            <div className="w-9 h-9 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center border border-slate-200/60">
-              <Sliders className="w-4 h-4" />
-            </div>
-          </div>
-        </div>
-
         {/* Quick Module Source Code Download Bar */}
         <ModuleDownloadBar
           selectedModuleId={selectedModuleId}
@@ -399,6 +366,7 @@ export const App: React.FC = () => {
         {(activeTab === 'all' || activeTab === 'switches') && (
           <SwitchPanel
             switches={switches}
+            disabled={isSwitchLocked}
             onToggleSwitch={handleToggleSwitch}
             onBatchToggle={handleBatchToggle}
           />
@@ -433,7 +401,7 @@ export const App: React.FC = () => {
       </main>
 
       {/* Clean Footer */}
-      <footer className="border-t border-slate-200/60 bg-white/60 backdrop-blur-md py-4 px-6 text-xs text-slate-500 mt-8 mb-16 md:mb-0">
+      <footer className="border-t border-slate-200/60 bg-white/60 backdrop-blur-md py-4 px-6 text-xs text-slate-500 mt-8 mb-16 lg:mb-0">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
           <div className="flex items-center gap-2">
             <span className="font-bold text-slate-700">IoT-KIT Dashboard Praktikum</span>
@@ -470,6 +438,31 @@ export const App: React.FC = () => {
         selectedModuleId={selectedModuleId}
         onSelectModuleId={setSelectedModuleId}
       />
+
+      {/* Non-blocking Toast Notification */}
+      {toast && (
+        <div
+          className={`fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-50 max-w-sm px-4 py-3 rounded-xl shadow-lg border text-xs font-medium flex items-center gap-2.5 animate-in fade-in slide-in-from-bottom-2 ${
+            toast.type === 'err'
+              ? 'bg-rose-50 border-rose-200 text-rose-800'
+              : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+          }`}
+        >
+          {toast.type === 'err' ? (
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          ) : (
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          )}
+          <span className="flex-1">{toast.message}</span>
+          <button
+            onClick={() => setToast(null)}
+            className="p-0.5 rounded hover:bg-black/5 cursor-pointer"
+            aria-label="Tutup notifikasi"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

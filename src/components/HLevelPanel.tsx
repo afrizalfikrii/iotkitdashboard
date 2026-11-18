@@ -11,6 +11,7 @@ export const HLevelPanel: React.FC<HLevelPanelProps> = ({ hlevel1, hlevel2 }) =>
   const [labels, setLabels] = useState<Record<number, string>>(() => loadSavedLabels().hlevels);
   const [editingCh, setEditingCh] = useState<number | null>(null);
   const [tempLabel, setTempLabel] = useState<string>('');
+  const [confirmReset, setConfirmReset] = useState<boolean>(false);
 
   const startEdit = (ch: number, currentName: string) => {
     setEditingCh(ch);
@@ -28,13 +29,12 @@ export const HLevelPanel: React.FC<HLevelPanelProps> = ({ hlevel1, hlevel2 }) =>
   };
 
   const handleResetNames = () => {
-    if (confirm('Kembalikan nama Level Bar ke bawaan?')) {
-      setLabels(DEFAULT_LABELS.hlevels);
-      const full = loadSavedLabels();
-      full.hlevels = DEFAULT_LABELS.hlevels;
-      saveLabels(full);
-      setEditingCh(null);
-    }
+    setLabels(DEFAULT_LABELS.hlevels);
+    const full = loadSavedLabels();
+    full.hlevels = DEFAULT_LABELS.hlevels;
+    saveLabels(full);
+    setEditingCh(null);
+    setConfirmReset(false);
   };
 
   const renderBar = (ch: number, val: number, nodeName: string, gradientColor: string, maxVal: number = 100) => {
@@ -129,20 +129,37 @@ export const HLevelPanel: React.FC<HLevelPanelProps> = ({ hlevel1, hlevel2 }) =>
       <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-100">
         <div>
           <h2 className="text-base font-bold text-slate-900 tracking-tight">
-            Level Bar Horizontal (HLevel 1 & 2)
+            Level Bar (1 & 2)
           </h2>
           <p className="text-xs text-slate-500">
-            Memonitor persentase level atau slider. Klik pensil untuk mengganti nama.
+            Persentase level dari ESP. Klik pensil untuk ubah nama.
           </p>
         </div>
 
-        <button
-          onClick={handleResetNames}
-          title="Reset Nama Bawaan"
-          className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-        </button>
+        {confirmReset ? (
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handleResetNames}
+              className="px-2 py-1 rounded-md bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-semibold cursor-pointer"
+            >
+              Reset
+            </button>
+            <button
+              onClick={() => setConfirmReset(false)}
+              className="px-2 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-medium cursor-pointer"
+            >
+              Batal
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setConfirmReset(true)}
+            title="Reset Nama Bawaan"
+            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
 
       {/* Level Bars Container */}

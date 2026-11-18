@@ -39,10 +39,10 @@ export const TerminalLog: React.FC<TerminalLogProps> = ({ logs, onClear }) => {
           </div>
           <div>
             <h2 className="text-sm font-bold text-slate-900 tracking-tight">
-              Riwayat Aktivitas & Komunikasi Data
+              Log Aktivitas
             </h2>
             <p className="text-xs text-slate-500">
-              Catatan transmisi data kirim (TX) dari web dan terima (RX) dari ESP
+              Catatan data dikirim ke ESP dan diterima dari ESP
             </p>
           </div>
         </div>
@@ -135,7 +135,7 @@ export const TerminalLog: React.FC<TerminalLogProps> = ({ logs, onClear }) => {
                       {isTX && <ArrowUpRight className="w-3 h-3 text-amber-600" />}
                       {isRX && <ArrowDownLeft className="w-3 h-3 text-emerald-600" />}
                       {!isTX && !isRX && <Info className="w-3 h-3 text-slate-500" />}
-                      <span>{isTX ? 'TX' : isRX ? 'RX' : 'SYS'}</span>
+                      <span>{isTX ? 'Kirim' : isRX ? 'Terima' : 'Sistem'}</span>
                     </span>
 
                     <span className="text-xs font-bold text-slate-700 font-mono shrink-0">

@@ -10,6 +10,7 @@ export const IndicatorPanel: React.FC<IndicatorPanelProps> = ({ indicators }) =>
   const [labels, setLabels] = useState<Record<number, string>>(() => loadSavedLabels().indicators);
   const [editingCh, setEditingCh] = useState<number | null>(null);
   const [tempLabel, setTempLabel] = useState<string>('');
+  const [confirmReset, setConfirmReset] = useState<boolean>(false);
 
   const startEdit = (ch: number, currentName: string) => {
     setEditingCh(ch);
@@ -27,13 +28,12 @@ export const IndicatorPanel: React.FC<IndicatorPanelProps> = ({ indicators }) =>
   };
 
   const handleResetNames = () => {
-    if (confirm('Kembalikan semua nama indikator ke bawaan (Indikator 1 - 8)?')) {
-      setLabels(DEFAULT_LABELS.indicators);
-      const full = loadSavedLabels();
-      full.indicators = DEFAULT_LABELS.indicators;
-      saveLabels(full);
-      setEditingCh(null);
-    }
+    setLabels(DEFAULT_LABELS.indicators);
+    const full = loadSavedLabels();
+    full.indicators = DEFAULT_LABELS.indicators;
+    saveLabels(full);
+    setEditingCh(null);
+    setConfirmReset(false);
   };
 
   const channelList = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -45,10 +45,10 @@ export const IndicatorPanel: React.FC<IndicatorPanelProps> = ({ indicators }) =>
       <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-100">
         <div>
           <h2 className="text-base font-bold text-slate-900 tracking-tight">
-            Indikator Sensor & Input Logika
+            Indikator Sensor
           </h2>
           <p className="text-xs text-slate-500">
-            Membaca data digital/logika dari ESP. Klik ikon pensil untuk memberi nama sensor.
+            Status input digital dari ESP. Klik pensil untuk ubah nama.
           </p>
         </div>
 
@@ -57,13 +57,30 @@ export const IndicatorPanel: React.FC<IndicatorPanelProps> = ({ indicators }) =>
             <span className={`w-1.5 h-1.5 rounded-full ${activeCount > 0 ? 'bg-blue-600' : 'bg-slate-400'}`} />
             <span>{activeCount} / 8 Aktif</span>
           </div>
-          <button
-            onClick={handleResetNames}
-            title="Reset Nama Bawaan"
-            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-          </button>
+          {confirmReset ? (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handleResetNames}
+                className="px-2 py-1 rounded-md bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-semibold cursor-pointer"
+              >
+                Reset
+              </button>
+              <button
+                onClick={() => setConfirmReset(false)}
+                className="px-2 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-medium cursor-pointer"
+              >
+                Batal
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmReset(true)}
+              title="Reset Nama Bawaan"
+              className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
