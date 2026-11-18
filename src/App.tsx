@@ -3,6 +3,9 @@ import { ConnectionStatus, FirebaseConfig, ActivityLog } from './types';
 import { firebaseService, loadSavedConfig } from './lib/firebase';
 import { Header } from './components/Header';
 import { ConfigModal } from './components/ConfigModal';
+import { SourceCodeModal } from './components/SourceCodeModal';
+import { ModuleDownloadBar } from './components/ModuleDownloadBar';
+import { PRAKTIKUM_MODULES } from './data/praktikumModules';
 import { SwitchPanel } from './components/SwitchPanel';
 import { IndicatorPanel } from './components/IndicatorPanel';
 import { GaugePanel } from './components/GaugePanel';
@@ -14,6 +17,8 @@ import { AlertCircle, RefreshCw, Activity, Power, Gauge, Sliders, Sparkles, Glob
 export const App: React.FC = () => {
   const [config, setConfig] = useState<FirebaseConfig>(loadSavedConfig());
   const [isConfigOpen, setIsConfigOpen] = useState<boolean>(false);
+  const [isSourceCodeOpen, setIsSourceCodeOpen] = useState<boolean>(false);
+  const [selectedModuleId, setSelectedModuleId] = useState<string>(PRAKTIKUM_MODULES[0]?.id || 'modul-02');
   const [status, setStatus] = useState<ConnectionStatus>('disconnected');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [latencyMs, setLatencyMs] = useState<number | null>(null);
@@ -268,29 +273,46 @@ export const App: React.FC = () => {
 
       {/* Main Canvas */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-4 pb-24 md:pb-8 space-y-6">
-        {/* Banner Akun Firebase Belum Diisi */}
+        {/* Banner Akun Firebase Belum Diisi + Panduan 3 Langkah */}
         {!isConfigured && (
-          <div className="p-4 bg-amber-50/90 border border-amber-200/90 rounded-2xl text-amber-900 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs animate-in fade-in">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
-                <Globe className="w-5 h-5" />
+          <div className="p-4 bg-amber-50/90 border border-amber-200/90 rounded-2xl text-amber-900 text-xs space-y-3 shadow-2xs animate-in fade-in">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <Globe className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900 text-xs sm:text-sm">
+                    Firebase Belum Dikonfigurasi — Mulai dalam 3 Langkah
+                  </p>
+                  <p className="text-slate-600 text-[11px] sm:text-xs">
+                    Hubungkan dashboard ini ke Firebase Realtime Database dan NodeMCU/ESP8266 Anda.
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="font-bold text-slate-900 text-xs sm:text-sm">
-                  Firebase Belum Dikonfigurasi
-                </p>
-                <p className="text-slate-600 text-[11px] sm:text-xs">
-                  Setiap mahasiswa memasukkan URL Database dan Database Secret Firebase masing-masing untuk menghubungkan dashboard ke ESP.
-                </p>
+              <button
+                onClick={() => setIsConfigOpen(true)}
+                className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm shadow-amber-500/20 shrink-0 transition-all cursor-pointer"
+              >
+                <Settings className="w-3.5 h-3.5" />
+                <span>1. Isi Akun Firebase</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t border-amber-200/70 text-[11px]">
+              <div className="flex items-center gap-2 bg-white/70 px-3 py-2 rounded-xl border border-amber-200/60">
+                <span className="w-5 h-5 rounded-full bg-amber-500 text-white font-bold flex items-center justify-center shrink-0 text-[10px]">1</span>
+                <span className="text-slate-700"><strong>Atur Firebase:</strong> Isi URL, Secret & User ID</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/70 px-3 py-2 rounded-xl border border-amber-200/60">
+                <span className="w-5 h-5 rounded-full bg-slate-800 text-white font-bold flex items-center justify-center shrink-0 text-[10px]">2</span>
+                <span className="text-slate-700"><strong>Unduh Modul:</strong> Pilih modul & upload via Arduino IDE</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/70 px-3 py-2 rounded-xl border border-amber-200/60">
+                <span className="w-5 h-5 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center shrink-0 text-[10px]">3</span>
+                <span className="text-slate-700"><strong>Pantau Realtime:</strong> Kontrol sakelar & baca sensor</span>
               </div>
             </div>
-            <button
-              onClick={() => setIsConfigOpen(true)}
-              className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm shadow-amber-500/20 shrink-0 transition-all cursor-pointer"
-            >
-              <Settings className="w-3.5 h-3.5" />
-              <span>Isi Akun Firebase</span>
-            </button>
           </div>
         )}
 
@@ -344,6 +366,14 @@ export const App: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Quick Module Source Code Download Bar */}
+        <ModuleDownloadBar
+          selectedModuleId={selectedModuleId}
+          onSelectModuleId={setSelectedModuleId}
+          onOpenModal={() => setIsSourceCodeOpen(true)}
+          currentConfig={config}
+        />
 
         {/* Error Notification Banner */}
         {status === 'error' && (
@@ -430,6 +460,15 @@ export const App: React.FC = () => {
         currentConfig={config}
         onClose={() => setIsConfigOpen(false)}
         onSave={handleSaveConfig}
+      />
+
+      {/* Source Code Praktikum Modal */}
+      <SourceCodeModal
+        isOpen={isSourceCodeOpen}
+        onClose={() => setIsSourceCodeOpen(false)}
+        currentConfig={config}
+        selectedModuleId={selectedModuleId}
+        onSelectModuleId={setSelectedModuleId}
       />
     </div>
   );
