@@ -41,33 +41,37 @@ export const GaugePanel: React.FC<GaugePanelProps> = ({ gauge1, gauge2 }) => {
     const clampedVal = Math.max(0, Math.min(cfg.max, value));
     const ratio = Math.max(0, Math.min(1, clampedVal / span));
 
+    const formattedVal = typeof value === 'number' ? value.toFixed(1) : '0.0';
+    const valFontSize =
+      formattedVal.length >= 6 ? 18 : formattedVal.length === 5 ? 22 : 26;
+
     // Semi-arc parameters (180 degrees)
-    const r = 70;
-    const cx = 95;
-    const cy = 85;
-    const circumference = Math.PI * r; // ~219.9
+    const r = 78;
+    const cx = 100;
+    const cy = 92;
+    const circumference = Math.PI * r; // ~245.0
     const strokeDashoffset = circumference * (1 - ratio);
 
     return (
       <div className="relative flex flex-col items-center p-4 bg-slate-50/70 rounded-xl border border-slate-200/80 w-full">
         {/* Top Channel tag & name */}
         <div className="flex items-center justify-between w-full mb-1">
-          <div className="flex items-center gap-1.5">
-            <span className="text-[11px] font-mono font-bold text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="text-[11px] font-mono font-bold text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200 shrink-0">
               G-0{ch}
             </span>
             <span className="text-xs font-bold text-slate-800 truncate">
               {cfg.label}
             </span>
           </div>
-          <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-white text-slate-600 border border-slate-200">
+          <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-white text-slate-600 border border-slate-200 shrink-0">
             {cfg.unit}
           </span>
         </div>
 
-        {/* Dial SVG */}
-        <div className="relative my-2">
-          <svg viewBox="0 0 190 105" className="w-full max-w-[210px] overflow-visible">
+        {/* Dial SVG (including proportional digital readout so it never collides with arc) */}
+        <div className="relative my-2 w-full flex justify-center">
+          <svg viewBox="0 0 200 112" className="w-full max-w-[220px] overflow-visible select-none">
             <defs>
               <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor={stop1} />
@@ -80,7 +84,7 @@ export const GaugePanel: React.FC<GaugePanelProps> = ({ gauge1, gauge2 }) => {
               d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
               fill="none"
               stroke="#e2e8f0"
-              strokeWidth="12"
+              strokeWidth="11"
               strokeLinecap="round"
             />
 
@@ -89,21 +93,35 @@ export const GaugePanel: React.FC<GaugePanelProps> = ({ gauge1, gauge2 }) => {
               d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
               fill="none"
               stroke={`url(#${gradientId})`}
-              strokeWidth="12"
+              strokeWidth="11"
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
               className="transition-all duration-300 ease-out"
             />
-          </svg>
 
-          {/* Central digital value */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center pt-8 select-none">
-            <div className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 font-mono tabular-nums">
-              {typeof value === 'number' ? value.toFixed(1) : '0.0'}
-            </div>
-            <span className="text-xs font-bold text-slate-400 mt-0.5">{cfg.unit}</span>
-          </div>
+            {/* Central Digital Value */}
+            <text
+              x={cx}
+              y={cy - 12}
+              textAnchor="middle"
+              className="fill-slate-900 font-mono font-extrabold"
+              style={{ fontSize: `${valFontSize}px` }}
+            >
+              {formattedVal}
+            </text>
+
+            {/* Unit Label */}
+            <text
+              x={cx}
+              y={cy + 6}
+              textAnchor="middle"
+              className="fill-slate-400 font-sans font-bold"
+              style={{ fontSize: '11px' }}
+            >
+              {cfg.unit}
+            </text>
+          </svg>
         </div>
 
         {/* Min / Max bounds & Node */}
