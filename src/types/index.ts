@@ -7,9 +7,14 @@ export interface FirebaseConfig {
 
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
 
+export interface IndicatorValue {
+  active: boolean;
+  text: string | null;
+}
+
 export interface TelemetryState {
   switches: Record<number, boolean>;
-  indicators: Record<number, boolean>;
+  indicators: Record<number, IndicatorValue>;
   gauges: {
     gauge1: number;
     gauge2: number;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ConnectionStatus, FirebaseConfig, ActivityLog } from './types';
+import { ConnectionStatus, FirebaseConfig, ActivityLog, IndicatorValue } from './types';
 import { firebaseService, loadSavedConfig } from './lib/firebase';
 import { Header } from './components/Header';
 import { ConfigModal } from './components/ConfigModal';
@@ -13,6 +13,45 @@ import { HLevelPanel } from './components/HLevelPanel';
 import { TerminalLog } from './components/TerminalLog';
 import { BottomNav } from './components/BottomNav';
 import { AlertCircle, RefreshCw, Globe, Settings, CheckCircle2, X } from 'lucide-react';
+
+const parseIndicatorValue = (raw: unknown): IndicatorValue => {
+  if (typeof raw === 'boolean') {
+    return { active: raw, text: null };
+  }
+  if (typeof raw === 'number') {
+    return { active: raw !== 0, text: null };
+  }
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    const lower = trimmed.toLowerCase();
+    if (!trimmed || lower === '0' || lower === 'false' || lower === 'low' || lower === 'off' || lower === 'null' || lower === 'none') {
+      return { active: false, text: null };
+    }
+    if (lower === '1' || lower === 'true' || lower === 'high' || lower === 'on') {
+      return { active: true, text: null };
+    }
+    // Descriptive negative phrases from IoT modules (e.g. "Tidak Terdeteksi" in Modul 10A PIR)
+    if (/^(tidak|no\b|non-?aktif|mati\b|idle\b)/i.test(lower)) {
+      return { active: false, text: trimmed };
+    }
+    return { active: true, text: trimmed };
+  }
+  if (raw && typeof raw === 'object' && 'value' in (raw as Record<string, unknown>)) {
+    return parseIndicatorValue((raw as Record<string, unknown>).value);
+  }
+  return { active: false, text: null };
+};
+
+const DEFAULT_INDICATORS: Record<number, IndicatorValue> = {
+  1: { active: false, text: null },
+  2: { active: false, text: null },
+  3: { active: false, text: null },
+  4: { active: false, text: null },
+  5: { active: false, text: null },
+  6: { active: false, text: null },
+  7: { active: false, text: null },
+  8: { active: false, text: null },
+};
 
 export const App: React.FC = () => {
   const [config, setConfig] = useState<FirebaseConfig>(loadSavedConfig());
@@ -29,9 +68,7 @@ export const App: React.FC = () => {
   const [switches, setSwitches] = useState<Record<number, boolean>>({
     1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false, 8: false
   });
-  const [indicators, setIndicators] = useState<Record<number, boolean>>({
-    1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false, 8: false
-  });
+  const [indicators, setIndicators] = useState<Record<number, IndicatorValue>>(DEFAULT_INDICATORS);
   const [gauges, setGauges] = useState<{ gauge1: number; gauge2: number }>({
     gauge1: 0,
     gauge2: 0
@@ -142,21 +179,18 @@ export const App: React.FC = () => {
           return changed ? nextSw : prev;
         });
 
-        // Parse Indicators (1..8)
+        // Parse Indicators (1..8) - supports boolean, numeric (0/1), and string status (e.g. PIR / RFID)
+        const parsedInds: Record<number, IndicatorValue> = {};
+        for (let i = 1; i <= 8; i++) {
+          parsedInds[i] = parseIndicatorValue(root[`indicator${i}`]);
+        }
+
         setIndicators(prev => {
           const nextInd = { ...prev };
           let changed = false;
           for (let i = 1; i <= 8; i++) {
-            const raw = root[`indicator${i}`];
-            let val = false;
-            if (typeof raw === 'boolean') val = raw;
-            else if (typeof raw === 'number') val = raw === 1;
-            else if (typeof raw === 'string') val = raw.toLowerCase() === 'true' || raw === '1' || raw.toLowerCase() === 'high';
-            else if (raw && typeof raw === 'object' && 'value' in (raw as Record<string, unknown>)) {
-              val = Boolean((raw as Record<string, unknown>).value);
-            }
-
-            if (nextInd[i] !== val) {
+            const val = parsedInds[i];
+            if (nextInd[i]?.active !== val.active || nextInd[i]?.text !== val.text) {
               nextInd[i] = val;
               changed = true;
             }
@@ -186,7 +220,11 @@ export const App: React.FC = () => {
         const h2 = parseNum(root['hlevel2'], 0);
         setHlevels({ hlevel1: h1, hlevel2: h2 });
 
-        addLog('TELEMETRI', 'RX', `Data sinkron: G1=${g1}, G2=${g2}, H1=${h1}, H2=${h2}`);
+        const indTexts = [1, 2, 3, 4, 5, 6, 7, 8]
+          .filter(i => parsedInds[i].text)
+          .map(i => `IN${i}="${parsedInds[i].text}"`);
+        const indSummary = indTexts.length > 0 ? `, ${indTexts.join(', ')}` : '';
+        addLog('TELEMETRI', 'RX', `Data sinkron: G1=${g1}, G2=${g2}, H1=${h1}, H2=${h2}${indSummary}`);
       }, (error) => {
         setStatus('error');
         setErrorMessage(error.message || 'Gagal membaca Realtime Database');

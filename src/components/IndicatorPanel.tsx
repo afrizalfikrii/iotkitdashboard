@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Pencil, Check, RotateCcw } from 'lucide-react';
 import { loadSavedLabels, saveLabels, DEFAULT_LABELS } from '../lib/labels';
+import { IndicatorValue } from '../types';
 
 interface IndicatorPanelProps {
-  indicators: Record<number, boolean>;
+  indicators: Record<number, IndicatorValue>;
   labelVersion?: number;
 }
 
@@ -42,7 +43,7 @@ export const IndicatorPanel: React.FC<IndicatorPanelProps> = ({ indicators, labe
   };
 
   const channelList = [1, 2, 3, 4, 5, 6, 7, 8];
-  const activeCount = Object.values(indicators).filter(Boolean).length;
+  const activeCount = Object.values(indicators).filter(v => v?.active).length;
 
   return (
     <div className="bg-white/90 backdrop-blur-md border border-slate-200/90 rounded-2xl p-5 shadow-xs flex flex-col">
@@ -89,10 +90,12 @@ export const IndicatorPanel: React.FC<IndicatorPanelProps> = ({ indicators, labe
         </div>
       </div>
 
-      {/* Grid of 8 Indicator Tiles (NO CONFUSING ICONS) */}
+      {/* Grid of 8 Indicator Tiles */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-1">
         {channelList.map((ch) => {
-          const isHigh = !!indicators[ch];
+          const indState = indicators[ch] || { active: false, text: null };
+          const isHigh = indState.active;
+          const statusText = indState.text;
           const isThisEditing = editingCh === ch;
           const currentName = labels[ch] || `Indikator ${ch}`;
 
@@ -168,6 +171,20 @@ export const IndicatorPanel: React.FC<IndicatorPanelProps> = ({ indicators, labe
                   </div>
                 )}
               </div>
+
+              {/* Optional String Status from ESP (e.g. PIR / RFID) */}
+              {statusText && (
+                <div
+                  className={`mb-2 px-2 py-1 rounded-md text-[11px] font-mono font-semibold truncate border ${
+                    isHigh
+                      ? 'bg-blue-100/80 text-blue-800 border-blue-200'
+                      : 'bg-slate-100 text-slate-600 border-slate-200'
+                  }`}
+                  title={statusText}
+                >
+                  {statusText}
+                </div>
+              )}
 
               {/* Bottom: Node Tag & Logic 1/0 */}
               <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
