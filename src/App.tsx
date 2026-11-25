@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ConnectionStatus, FirebaseConfig, ActivityLog, IndicatorValue } from './types';
-import { firebaseService, loadSavedConfig } from './lib/firebase';
+import { firebaseService, loadSavedConfig, saveConfig, clearSavedConfig } from './lib/firebase';
 import { Header } from './components/Header';
 import { ConfigModal } from './components/ConfigModal';
 import { SourceCodeModal } from './components/SourceCodeModal';
@@ -47,6 +47,10 @@ const parseIndicatorValue = (raw: unknown): IndicatorValue => {
   return { active: false, text: null };
 };
 
+const DEFAULT_SWITCHES: Record<number, boolean> = {
+  1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false, 8: false,
+};
+
 const DEFAULT_INDICATORS: Record<number, IndicatorValue> = {
   1: { active: false, text: null },
   2: { active: false, text: null },
@@ -70,9 +74,7 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'switches' | 'sensors' | 'logs'>('all');
 
   // Hardware telemetry states
-  const [switches, setSwitches] = useState<Record<number, boolean>>({
-    1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false, 8: false
-  });
+  const [switches, setSwitches] = useState<Record<number, boolean>>(DEFAULT_SWITCHES);
   const [indicators, setIndicators] = useState<Record<number, IndicatorValue>>(DEFAULT_INDICATORS);
   const [gauges, setGauges] = useState<{ gauge1: number; gauge2: number }>({
     gauge1: 0,
@@ -86,7 +88,16 @@ export const App: React.FC = () => {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [toast, setToast] = useState<{ message: string; type: 'ok' | 'err' } | null>(null);
   const toastTimerRef = useRef<number | null>(null);
+  const lastTelemetrySummaryRef = useRef<string>('');
   const isInitialMount = useRef(true);
+
+  const resetTelemetryState = useCallback(() => {
+    setSwitches(DEFAULT_SWITCHES);
+    setIndicators(DEFAULT_INDICATORS);
+    setGauges({ gauge1: 0, gauge2: 0 });
+    setHlevels({ hlevel1: 0, hlevel2: 0 });
+    lastTelemetrySummaryRef.current = '';
+  }, []);
 
   const showToast = useCallback((message: string, type: 'ok' | 'err' = 'ok') => {
     setToast({ message, type });
@@ -122,7 +133,11 @@ export const App: React.FC = () => {
 
   // Connect / Reconnect to Firebase RTDB
   const connectToFirebase = useCallback(async (cfg: FirebaseConfig) => {
+    resetTelemetryState();
+
     if (!cfg.databaseURL.trim() || !cfg.apiKey.trim()) {
+      clearSavedConfig();
+      firebaseService.cleanup();
       setStatus('disconnected');
       setErrorMessage(null);
       setLatencyMs(null);
@@ -132,14 +147,17 @@ export const App: React.FC = () => {
 
     setStatus('connecting');
     setErrorMessage(null);
+    setLatencyMs(null);
     addLog('SISTEM', 'SYS', `Menghubungkan ke Firebase: ${cfg.databaseURL}...`);
 
     try {
       await firebaseService.init(cfg);
 
       // Otomatis buat node default di Firebase Console jika belum ada
+      let hasTriedAutoInit = false;
       try {
         const initRes = await firebaseService.initializeSchema(false);
+        hasTriedAutoInit = true;
         if (initRes.createdCount > 0) {
           addLog('DATABASE', 'TX', `Inisialisasi ${initRes.createdCount} node Firebase otomatis berhasil (switch 1-8, indicator 1-8, gauge 1-2, hlevel 1-2).`);
         }
@@ -148,15 +166,22 @@ export const App: React.FC = () => {
       }
 
       const t0 = performance.now();
+      let initialSyncMeasured = false;
       firebaseService.subscribeToRoot((data) => {
-        const roundtrip = Math.round(performance.now() - t0);
-        setLatencyMs(roundtrip > 0 ? roundtrip : 15);
+        if (!initialSyncMeasured) {
+          initialSyncMeasured = true;
+          const roundtrip = Math.round(performance.now() - t0);
+          setLatencyMs(roundtrip > 0 ? roundtrip : 15);
+        }
         setStatus('connected');
         setErrorMessage(null);
 
         if (!data || typeof data !== 'object') {
-          addLog('DATABASE', 'RX', 'Berhasil terhubung. Menyiapkan node awal...', 'warn');
-          firebaseService.initializeSchema(false).catch(console.error);
+          if (!hasTriedAutoInit) {
+            hasTriedAutoInit = true;
+            addLog('DATABASE', 'RX', 'Berhasil terhubung. Menyiapkan node awal...', 'warn');
+            firebaseService.initializeSchema(false).catch(console.error);
+          }
           return;
         }
 
@@ -225,11 +250,20 @@ export const App: React.FC = () => {
         const h2 = parseNum(root['hlevel2'], 0);
         setHlevels({ hlevel1: h1, hlevel2: h2 });
 
-        const indTexts = [1, 2, 3, 4, 5, 6, 7, 8]
-          .filter(i => parsedInds[i].text)
-          .map(i => `IN${i}="${parsedInds[i].text}"`);
-        const indSummary = indTexts.length > 0 ? `, ${indTexts.join(', ')}` : '';
-        addLog('TELEMETRI', 'RX', `Data sinkron: G1=${g1}, G2=${g2}, H1=${h1}, H2=${h2}${indSummary}`);
+        const indSummary = [1, 2, 3, 4, 5, 6, 7, 8]
+          .map(i => {
+            const ind = parsedInds[i];
+            if (ind.text) return `IN${i}="${ind.text}"`;
+            if (ind.active) return `IN${i}=1`;
+            return '';
+          })
+          .filter(Boolean)
+          .join(', ');
+        const telemetrySummary = `G1=${g1}, G2=${g2}, H1=${h1}, H2=${h2}${indSummary ? `, ${indSummary}` : ''}`;
+        if (telemetrySummary !== lastTelemetrySummaryRef.current) {
+          lastTelemetrySummaryRef.current = telemetrySummary;
+          addLog('TELEMETRI', 'RX', `Data sinkron: ${telemetrySummary}`);
+        }
       }, (error) => {
         setStatus('error');
         setErrorMessage(error.message || 'Gagal membaca Realtime Database');
@@ -242,7 +276,7 @@ export const App: React.FC = () => {
       setErrorMessage(msg);
       addLog('DATABASE', 'SYS', `Gagal inisialisasi: ${msg}`, 'err');
     }
-  }, [addLog]);
+  }, [addLog, resetTelemetryState]);
 
   // Initial connect on mount
   useEffect(() => {
@@ -269,6 +303,7 @@ export const App: React.FC = () => {
     try {
       await firebaseService.setNodeValue(`switch${channel}`, newState);
       const elapsed = Math.round(performance.now() - tStart);
+      setLatencyMs(elapsed > 0 ? elapsed : 1);
       addLog(`Sakelar ${channel}`, 'TX', `switch${channel} := ${newState ? 'TRUE (ON)' : 'FALSE (OFF)'} [${elapsed}ms]`);
     } catch (err: unknown) {
       setSwitches(prev => ({ ...prev, [channel]: !newState }));
@@ -303,24 +338,9 @@ export const App: React.FC = () => {
   };
 
   const handleSaveConfig = (newConfig: FirebaseConfig) => {
+    saveConfig(newConfig);
     setConfig(newConfig);
     connectToFirebase(newConfig);
-  };
-
-  const handleForceInitNodes = async () => {
-    if (!firebaseService.getDatabase()) {
-      showToast('Firebase belum terhubung. Harap isi URL & Key terlebih dahulu.', 'err');
-      return;
-    }
-    try {
-      const res = await firebaseService.initializeSchema(true);
-      addLog('DATABASE', 'TX', `Struktur ${res.createdCount} node Firebase berhasil dibuat ulang di console.`, 'ok');
-      showToast('Seluruh node Firebase (switch, indicator, gauge, hlevel) berhasil dibuat.', 'ok');
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      addLog('DATABASE', 'TX', `Gagal inisialisasi node: ${msg}`, 'err');
-      showToast(`Gagal inisialisasi node: ${msg}`, 'err');
-    }
   };
 
   const isConfigured = Boolean(config.databaseURL.trim() && config.apiKey.trim());

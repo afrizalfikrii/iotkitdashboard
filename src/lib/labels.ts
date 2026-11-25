@@ -2,6 +2,7 @@ export interface CustomLabels {
   switches: Record<number, string>;
   indicators: Record<number, string>;
   hlevels: Record<number, string>;
+  hlevelMeta: Record<number, { unit: string; max: number }>;
   gauges: Record<number, { label: string; unit: string; max: number }>;
 }
 
@@ -32,6 +33,10 @@ export const DEFAULT_LABELS: CustomLabels = {
     1: 'Level Bar 1',
     2: 'Level Bar 2',
   },
+  hlevelMeta: {
+    1: { unit: '%', max: 100 },
+    2: { unit: '%', max: 100 },
+  },
   gauges: {
     1: { label: 'Gauge 1', unit: '°C', max: 100 },
     2: { label: 'Gauge 2', unit: 'RPM', max: 1000 },
@@ -47,6 +52,7 @@ export function loadSavedLabels(): CustomLabels {
         switches: { ...DEFAULT_LABELS.switches, ...(parsed.switches || {}) },
         indicators: { ...DEFAULT_LABELS.indicators, ...(parsed.indicators || {}) },
         hlevels: { ...DEFAULT_LABELS.hlevels, ...(parsed.hlevels || {}) },
+        hlevelMeta: { ...DEFAULT_LABELS.hlevelMeta, ...(parsed.hlevelMeta || {}) },
         gauges: { ...DEFAULT_LABELS.gauges, ...(parsed.gauges || {}) },
       };
     }

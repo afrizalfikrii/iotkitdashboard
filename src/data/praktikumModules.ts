@@ -5,6 +5,7 @@ export interface LabelPreset {
   switches?: Record<number, string>;
   indicators?: Record<number, string>;
   hlevels?: Record<number, string>;
+  hlevelMeta?: Record<number, { unit: string; max: number }>;
   gauges?: Record<number, { label: string; unit: string; max: number }>;
 }
 
@@ -142,6 +143,7 @@ const MODULE_LIST: ModuleMeta[] = [
         2: { label: 'Tekanan Udara', unit: 'hPa', max: 1100 },
       },
       hlevels: { 1: 'Ketinggian (m)' },
+      hlevelMeta: { 1: { unit: 'm', max: 500 } },
     },
   },
   {
@@ -175,6 +177,7 @@ const MODULE_LIST: ModuleMeta[] = [
     usesFirebase: true,
     labelPreset: {
       hlevels: { 1: 'Jarak Ultrasonik (cm)' },
+      hlevelMeta: { 1: { unit: 'cm', max: 200 } },
     },
   },
   {
@@ -285,6 +288,7 @@ export function applyModuleLabelPreset(mod: PraktikumModule): CustomLabels {
     switches: { ...DEFAULT_LABELS.switches, ...(preset.switches || {}) },
     indicators: { ...DEFAULT_LABELS.indicators, ...(preset.indicators || {}) },
     hlevels: { ...DEFAULT_LABELS.hlevels, ...(preset.hlevels || {}) },
+    hlevelMeta: { ...DEFAULT_LABELS.hlevelMeta, ...(preset.hlevelMeta || {}) },
     gauges: { ...DEFAULT_LABELS.gauges, ...(preset.gauges || {}) },
   };
   saveLabels(next);
