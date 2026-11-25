@@ -19,19 +19,24 @@ const parseIndicatorValue = (raw: unknown): IndicatorValue => {
     return { active: raw, text: null };
   }
   if (typeof raw === 'number') {
-    return { active: raw !== 0, text: null };
+    return { active: raw > 0, text: null };
   }
   if (typeof raw === 'string') {
     const trimmed = raw.trim();
     const lower = trimmed.toLowerCase();
-    if (!trimmed || lower === '0' || lower === 'false' || lower === 'low' || lower === 'off' || lower === 'null' || lower === 'none') {
+    // Empty, boolean-false, or mobile-app default placeholders ("--", "-", "N/A", etc.)
+    if (
+      !trimmed ||
+      /^[-_.\s]+$/.test(trimmed) ||
+      ['0', 'false', 'low', 'off', 'null', 'none', 'na', 'n/a', 'nan', 'undefined', 'kosong', 'empty'].includes(lower)
+    ) {
       return { active: false, text: null };
     }
     if (lower === '1' || lower === 'true' || lower === 'high' || lower === 'on') {
       return { active: true, text: null };
     }
-    // Descriptive negative phrases from IoT modules (e.g. "Tidak Terdeteksi" in Modul 10A PIR)
-    if (/^(tidak|no\b|non-?aktif|mati\b|idle\b)/i.test(lower)) {
+    // Descriptive negative/idle phrases from IoT modules (e.g. "Tidak Terdeteksi" in Modul 10A PIR)
+    if (/^(tidak|no\b|non-?aktif|mati\b|idle\b|standby\b|normal\b|aman\b)/i.test(lower)) {
       return { active: false, text: trimmed };
     }
     return { active: true, text: trimmed };
